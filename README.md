@@ -1,0 +1,2 @@
+# dcc
+compilation database generator
