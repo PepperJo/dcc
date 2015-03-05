@@ -31,6 +31,8 @@ static const CompilerFlag flags[] = {
     { "-std=", 0},
     /* output */
     { "-o", 1 },
+    /* link library */
+    { "-l", 1 },
     { "-g", 0 },
     { "-c", 0 },
     { "-O", 0 },
@@ -44,6 +46,9 @@ static const CompilerFlag flags[] = {
     { "-print-file-name=", 0 },
     { "-nostdlib", 0 },
     { "-pipe", 0 },
+    { "-MT", 1 },
+    { "-MF", 1 },
+    { "-M", 0 }
 };
 
 const std::string exclude_files[] = {
