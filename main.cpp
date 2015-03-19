@@ -40,15 +40,27 @@ static const CompilerFlag flags[] = {
     { "-f", 0 },
     { "-S", 0 },
     { "-x", 1 },
+    /* version */
     { "-v", 0 },
+    { "--version", 0 },
+    { "-V", 1 },
+    { "-qversion", 0 },
     { "-pg", 0 },
     { "--param=", 0 },
+    /* print */
     { "-print-file-name=", 0 },
+    { "-print-search-dirs", 0 },
+    { "-print-multi-os-directory", 0 },
     { "-nostdlib", 0 },
+    /* library */
+    { "-shared", 0 },
+    { "-static", 0 },
     { "-pipe", 0 },
     { "-MT", 1 },
     { "-MF", 1 },
-    { "-M", 0 }
+    { "-M", 0 },
+    { "-E", 0 },
+    { "-d", 0 }
 };
 
 const std::string exclude_files[] = {
