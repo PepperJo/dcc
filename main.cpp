@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <linux/limits.h>
 
+#include <json/json.h>
+
 static char cwd[PATH_MAX];
 
 struct CompilerFlag {
@@ -27,6 +29,7 @@ static const CompilerFlag flags[] = {
     { "-W", 0 },
     /* defines */
     { "-D", 1 },
+    { "-U", 1 },
     /* lang */
     { "-std=", 0},
     /* output */
@@ -56,6 +59,7 @@ static const CompilerFlag flags[] = {
     { "-shared", 0 },
     { "-static", 0 },
     { "-pipe", 0 },
+    { "-pthread", 0 },
     { "-MT", 1 },
     { "-MF", 1 },
     { "-M", 0 },
@@ -88,13 +92,18 @@ int main(int argc, char** argv)
     }
 
     std::stringstream ss;
-    std::vector<char*> source_files;
+    std::vector<const char*> source_files;
     std::uint32_t n_args = 0;
     std::string compiler(argv[2]);
 
     ss << compiler << " ";
     for (int i = 3; i < argc; i++) {
-        ss << argv[i] << " ";
+        if (i + 1 < argc) {
+            ss << argv[i] << " ";
+        } else {
+            ss << argv[i];
+        }
+
         if (n_args == 0) {
             bool match = false;
             for (auto& flag : flags) {
@@ -136,32 +145,51 @@ int main(int argc, char** argv)
         }
         std::fstream cdb(cdb_path, cdb_openmode);
         if (cdb) {
+            Json::Value root(Json::arrayValue);
             if (cdb_exists) {
-                cdb.seekp(-2, std::ios_base::end);
-                cdb << ",\n";
-            } else {
-                cdb << "[\n";
+                cdb >> root;
             }
+
             for (auto filename : source_files) {
-                cdb << "\t{\n";
-                cdb << "\t\t\"command\": \"" << ss.str() << "\",\n";
-                cdb << "\t\t\"directory\": \"" << cwd << "\",\n";
-                cdb << "\t\t\"file\": \"";
+                bool update = false;
+                std::stringstream filename_absolut;
                 if (filename[0] != '/') {
-                    cdb << cwd << "/";
+                    filename_absolut << cwd << "/";
                 }
-                cdb << filename << "\"\n";
-                cdb << "\t},\n";
+                filename_absolut << filename;
+
+                for (auto& e : root) {
+                    if (e["file"].asString() == filename_absolut.str()) {
+                        assert(e["directory"].asString() == cwd);
+                        e["command"] = ss.str();
+                        update = true;
+                        break;
+                    }
+                }
+
+                if (!update) {
+                    Json::Value e;
+                    e["file"] = filename_absolut.str();
+                    e["directory"] = cwd;
+                    e["command"] = ss.str();
+                    root.append(e);
+                }
             }
-            cdb.seekp(-2, std::ios_base::end);
-            cdb << "\n]";
+
+            if (cdb_exists) {
+                cdb.close();
+                // We want to replace the file
+                cdb.open(cdb_path, std::ios::out);
+            }
+
+            cdb << root;
             cdb.close();
         } else {
             std::cerr << "could not open compile_commands.json" << std::endl;
         }
     }
 
-    /* ok, now let's call the real thing */
+    // ok, now let's call the real thing
     std::uint32_t argc_null = argc - 1;
     char** argv_null = new char*[argc_null];
     std::copy(argv + 2, argv + argc, argv_null);
