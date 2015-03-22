@@ -139,7 +139,7 @@ int main(int argc, char** argv)
         std::string cdb_path = std::string(argv[1]) + "/compile_commands.json";
         bool cdb_exists = file_exists(cdb_path);
 
-        std::ios_base::openmode cdb_openmode = std::ios::out;
+        std::ios_base::openmode cdb_openmode = std::ios::out | std::ios::binary;
         if (cdb_exists) {
             cdb_openmode |= std::ios::in;
         }
@@ -151,13 +151,13 @@ int main(int argc, char** argv)
             }
 
             for (auto filename : source_files) {
-                bool update = false;
                 std::stringstream filename_absolut;
                 if (filename[0] != '/') {
                     filename_absolut << cwd << "/";
                 }
                 filename_absolut << filename;
 
+                bool update = false;
                 for (auto& e : root) {
                     if (e["file"].asString() == filename_absolut.str()) {
                         assert(e["directory"].asString() == cwd);
@@ -179,7 +179,8 @@ int main(int argc, char** argv)
             if (cdb_exists) {
                 cdb.close();
                 // We want to replace the file
-                cdb.open(cdb_path, std::ios::out);
+                cdb_openmode &= ~std::ios::in;
+                cdb.open(cdb_path, cdb_openmode);
             }
 
             cdb << root;
