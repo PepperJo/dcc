@@ -13,4 +13,4 @@ or
 [BEAR]: https://github.com/rizsotto/Bear
 
 # issues
-* check for duplicates
+* concurrent access to compile_database.json
