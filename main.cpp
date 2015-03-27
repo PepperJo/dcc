@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <linux/limits.h>
 
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 
 static char cwd[PATH_MAX];
 
@@ -67,7 +67,7 @@ static const CompilerFlag flags[] = {
     { "-d", 0 }
 };
 
-const std::string exclude_files[] = {
+const std::array<std::string, 2> exclude_files = {
     "-",
     "/dev/null"
 };
@@ -119,14 +119,8 @@ int main(int argc, char** argv)
                 }
             }
             if (!match) {
-                bool exclude = false;
-                for (auto& filename : exclude_files) {
-                    if (filename == argv[i]) {
-                        exclude = true;
-                        break;
-                    }
-                }
-                if (!exclude) {
+                if (std::find(exclude_files.cbegin(), exclude_files.cend(),
+                            argv[i]) == exclude_files.end()) {
                     source_files.push_back(argv[i]);
                 }
             }
