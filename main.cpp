@@ -6,9 +6,10 @@
 #include <fstream>
 #include <functional>
 #include <cassert>
+#include <array>
 
+#include <limits.h>
 #include <unistd.h>
-#include <linux/limits.h>
 
 #include <jsoncpp/json/json.h>
 
